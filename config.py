@@ -1,12 +1,12 @@
-from decimal import Decimal                                             # Decimal does exact money maths; float can drift (0.1 + 0.2 is not 0.3)
+from decimal import Decimal
 
-DB_FILE = "efl.db"                                                      # Name of the SQLite database file, created in the project folder
-LOG_DIR = "logs"                                                        # Folder for log files (used on Thursday)
-CACHE_DIR = "cache"                                                     # Folder for cached user data (used on Thursday)
+DB_FILE = "efl.db"
+LOG_DIR = "logs"
+CACHE_DIR = "cache"
 
-MIN_TRANSACTION = Decimal("300")                                        # Annexe A: smallest amount allowed, in the initial currency
-MAX_TRANSACTION = Decimal("5000")                                       # Annexe A: largest amount allowed, in the initial currency
-CURRENCIES = ["GBP", "USD", "EUR", "BRL", "JPY", "TRY"]                 # Annexe A: the six currency codes the system supports
+MIN_TRANSACTION = Decimal("300")
+MAX_TRANSACTION = Decimal("5000")
+CURRENCIES = ["GBP", "USD", "EUR", "BRL", "JPY", "TRY"]
 
 FEE_BANDS = [                                                           # Fee bands as (amount above, fee percent), highest band first
     (Decimal("2500"), Decimal("1.5")),                                  # Over 2,500 pays 1.5%

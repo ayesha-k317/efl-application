@@ -1,14 +1,14 @@
-PRAGMA foreign_keys = ON;                                              -- Make SQLite enforce foreign keys (it ignores them by default)
+PRAGMA foreign_keys = ON;
 
-CREATE TABLE IF NOT EXISTS currency (                                  -- Create the table only if it does not exist yet
-    currency_code TEXT PRIMARY KEY,                                    -- Three-letter code such as GBP; the primary key
-    name TEXT NOT NULL,                                                -- Full name; NOT NULL means it must be filled in
-    symbol TEXT NOT NULL,                                              -- Symbol such as £
-    is_active INTEGER NOT NULL DEFAULT 1                               -- 1 = offered to users, 0 = hidden
-);                                                                     -- End of the currency table
+CREATE TABLE IF NOT EXISTS currency (
+    currency_code TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    is_active INTEGER NOT NULL DEFAULT 1
+);
 
-CREATE TABLE IF NOT EXISTS exchange_rate (                             -- One row per rate we have loaded
-    rate_id INTEGER PRIMARY KEY AUTOINCREMENT,                         -- Auto number; each new row gets the next id
+CREATE TABLE IF NOT EXISTS exchange_rate (
+    rate_id INTEGER PRIMARY KEY AUTOINCREMENT,
     currency_code TEXT NOT NULL REFERENCES currency (currency_code),   -- Foreign key: must be a real currency
     rate_to_usd REAL NOT NULL CHECK (rate_to_usd > 0),                 -- US dollars per one unit; CHECK blocks zero or negative
     fetched_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,                -- When the rate was loaded; filled in automatically

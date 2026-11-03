@@ -1,17 +1,17 @@
-import sqlite3                                                          # Python's built-in SQLite library; nothing to install
-from decimal import Decimal                                             # For exact rates
-from pathlib import Path                                                # Lets us find schema.sql whatever folder we run from
+import sqlite3
+from decimal import Decimal
+from pathlib import Path
 
-import config                                                           # Our settings file
-from errors import RateUnavailableError                                 # The error to raise when no rate exists
+import config
+from errors import RateUnavailableError
 
-BASE_DIR = Path(__file__).parent                                        # The folder this file lives in
+BASE_DIR = Path(__file__).parent
 
-def get_connection(db_file=None):                                       # Open the database; db_file lets tests use a different file
-    """Open a connection to the SQLite database."""                     # Docstring
-    connection = sqlite3.connect(db_file or config.DB_FILE)             # Use the given file, or the default from config
-    connection.row_factory = sqlite3.Row                                # Lets us read a column by name, row["amount"]
-    connection.execute("PRAGMA foreign_keys = ON")                      # Turn on foreign keys for this connection
+def get_connection(db_file=None):
+    """Open a connection to the SQLite database."""
+    connection = sqlite3.connect(db_file or config.DB_FILE)
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA foreign_keys = ON")
     return connection                                                   # Give the open connection to the caller
 
 def init_db(db_file=None):                                              # Create every table and fill the reference data
