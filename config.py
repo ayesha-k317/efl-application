@@ -49,3 +49,10 @@ TAX_RULES = [
 
 YEARS = (1, 5, 10)
 MAX_QUOTE_INPUT = Decimal("10000000")
+
+DEV_SECRET_KEY = "change-me-before-you-deploy"
+PASSWORD_MIN_LENGTH = 8
+USE_LIVE_RATES = True
+RATE_URL = "https://open.er-api.com/v6/latest/USD"
+RATE_TIMEOUT_SECONDS = 5
+RATE_MAX_AGE_MINUTES = 10

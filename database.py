@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from decimal import Decimal
 from pathlib import Path
@@ -156,3 +157,100 @@ def mark_quote_saved(quote_id, user_id, db_file=None):
         return cursor.rowcount == 1
     finally:
         connection.close()
+
+def log_error(source, message, db_file=None):
+    """Record an internal error with its diagnostic data."""
+    connection = get_connection(db_file)
+    try:
+        connection.execute("INSERT INTO error_log (source, message) VALUES (?, ?)", (source, message))
+        connection.commit()
+    finally:
+        connection.close()
+
+
+def create_user(name, email, phone, password_hash, db_file=None):
+    """Insert a user and return the new user id."""
+    connection = get_connection(db_file)
+    try:
+        cursor = connection.execute("INSERT INTO user (name, email, phone, password_hash) VALUES (?, ?, ?, ?)", (name, email, phone, password_hash))
+        connection.commit()
+        return cursor.lastrowid
+    finally:
+        connection.close()
+
+
+def get_user_by_email(email, db_file=None):
+    """Return the user row as a dictionary, or None."""
+    connection = get_connection(db_file)
+    try:
+        row = connection.execute("SELECT user_id, name, email, password_hash FROM user WHERE email = ?", (email,)).fetchone()
+    finally:
+        connection.close()
+    return dict(row) if row else None
+
+
+def has_fresh_live_rate(db_file=None):
+    """True if a live rate younger than RATE_MAX_AGE_MINUTES is stored."""
+    connection = get_connection(db_file)
+    try:
+        row = connection.execute("SELECT 1 FROM exchange_rate WHERE source = 'live' AND fetched_at > datetime('now', ?) LIMIT 1", ("-" + str(config.RATE_MAX_AGE_MINUTES) + " minutes",)).fetchone()
+    finally:
+        connection.close()
+    return row is not None
+
+
+def save_rates(rates, source, db_file=None):
+    """Insert one exchange_rate row for each currency in the dictionary."""
+    connection = get_connection(db_file)
+    try:
+        for code, rate in rates.items():
+            connection.execute("INSERT INTO exchange_rate (currency_code, rate_to_usd, source) VALUES (?, ?, ?)", (code, float(rate), source))
+        connection.commit()
+    finally:
+        connection.close()
+
+
+def latest_rate_time(db_file=None):
+    """Return the newest fetched_at text, or None."""
+    connection = get_connection(db_file)
+    try:
+        row = connection.execute("SELECT MAX(fetched_at) AS latest FROM exchange_rate").fetchone()
+    finally:
+        connection.close()
+    return row["latest"]
+
+
+def get_history(user_id, db_file=None):
+    """Return the user's transactions and saved quotes."""
+    connection = get_connection(db_file)
+    try:
+        transactions = connection.execute("SELECT transaction_id, created_at, from_currency, to_currency, amount, rate_used, fee_percent, fee_usd, converted_amount FROM conversion_transaction WHERE user_id = ? ORDER BY transaction_id DESC LIMIT 100", (user_id,)).fetchall()
+        quote_rows = connection.execute("SELECT q.quote_id, q.created_at, q.lump_sum, q.monthly_amount, p.name AS plan_name FROM quote q JOIN investment_plan p ON p.plan_id = q.plan_id WHERE q.user_id = ? AND q.is_saved = 1 ORDER BY q.quote_id DESC", (user_id,)).fetchall()
+        quotes_out = []
+        for q in quote_rows:
+            results = connection.execute("SELECT scenario, years, final_value, total_profit, total_fees, total_tax FROM quote_result WHERE quote_id = ? ORDER BY scenario, years", (q["quote_id"],)).fetchall()
+            quotes_out.append({**dict(q), "results": [dict(r) for r in results]})
+    finally:
+        connection.close()
+    return {"transactions": [dict(t) for t in transactions], "quotes": quotes_out}
+
+
+def save_draft(user_id, form_data, db_file=None):
+    """Insert a draft and return its id."""
+    connection = get_connection(db_file)
+    try:
+        cursor = connection.execute("INSERT INTO draft (user_id, form_data) VALUES (?, ?)", (user_id, json.dumps(form_data)))
+        connection.commit()
+        return cursor.lastrowid
+    finally:
+        connection.close()
+
+
+def get_draft(draft_id, user_id, db_file=None):
+    """Return the draft's form data, or None."""
+    connection = get_connection(db_file)
+    try:
+        row = connection.execute("SELECT form_data FROM draft WHERE draft_id = ? AND user_id = ?", (draft_id, user_id)).fetchone()
+    finally:
+        connection.close()
+    return json.loads(row["form_data"]) if row else None
