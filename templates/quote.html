@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Savings quote{% endblock %}
+{% block content %}
+  <h1>Savings quote</h1>
+  <form id="quote-form">
+    <label for="lump">Initial lump sum (GBP)</label>
+    <input id="lump" type="text" inputmode="decimal" value="0.00" required>
+    <label for="monthly">Monthly amount (GBP)</label>
+    <input id="monthly" type="text" inputmode="decimal" required>
+    <label for="plan">Investment type</label>
+    <select id="plan">
+      {% for plan in plans %}
+      <option value="{{ plan.plan_id }}">{{ plan.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Get quote</button>
+  </form>
+  <p id="error" class="error" role="alert"></p>
+  <section id="quote-output" hidden>
+    <p id="recommendation" class="result"></p>
+    <p id="loss-warning" class="warning"></p>
+    <h2>Your quote</h2>
+    <table id="quote-table">
+      <thead>
+        <tr><th>Years</th><th>Scenario</th><th>Paid in</th><th>Final value</th><th>Profit</th><th>Fees</th><th>Tax</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <h2>Chart: final value</h2>
+    <svg id="quote-chart" viewBox="0 0 600 300" role="img" aria-label="Bar chart of the minimum and maximum final value after 1, 5 and 10 years"></svg>
+    <h2>Compare all plans</h2>
+    <table id="compare-table">
+      <thead>
+        <tr><th>Plan</th><th>Available?</th><th>Final value after 10 years (best case)</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button id="save-quote" type="button">Save this quote</button>
+    <p id="save-message" class="result"></p>
+  </section>
+{% endblock %}
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/quote.js') }}"></script>
+{% endblock %}
