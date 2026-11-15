@@ -46,3 +46,6 @@ TAX_RULES = [
     (3, 12000, 10),
     (3, 40000, 20),
 ]
+
+YEARS = (1, 5, 10)
+MAX_QUOTE_INPUT = Decimal("10000000")

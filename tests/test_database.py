@@ -69,3 +69,11 @@ def test_foreign_key_blocks_unknown_user(db_file):
     transaction = {"from_currency": "GBP", "to_currency": "USD", "amount": 300, "rate_used": 1.3, "fee_percent": 3.5, "fee_usd": 13.65, "converted_amount": 390}
     with pytest.raises(sqlite3.IntegrityError):
         database.save_transaction(999, transaction, db_file)
+
+def test_get_plans_returns_decimals_and_rules(db_file):
+    plans = database.get_plans(db_file)
+    assert [p["name"] for p in plans] == ["Basic Savings Plan", "Savings Plan Plus", "Managed Stock Investments"]
+    assert plans[0]["min_lump_sum"] is None and plans[2]["max_per_year"] is None
+    assert plans[1]["monthly_fee_pct"] == Decimal("0.3")
+    assert plans[2]["tax_rules"] == [(Decimal("12000"), Decimal("10")), (Decimal("40000"), Decimal("20"))]
+    assert plans[0]["tax_rules"] == []

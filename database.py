@@ -101,3 +101,58 @@ def save_transaction(user_id, transaction, db_file=None):
         return cursor.lastrowid
     finally:
         connection.close()
+
+def get_plans(db_file=None):
+    """Return the plans as dictionaries holding Decimal values."""
+    connection = get_connection(db_file)
+    try:
+        plan_rows = connection.execute("SELECT * FROM investment_plan ORDER BY plan_id").fetchall()
+        rule_rows = connection.execute("SELECT plan_id, profit_above, tax_rate_pct FROM tax_rule ORDER BY plan_id, profit_above").fetchall()
+    finally:
+        connection.close()
+    plans = []
+    for row in plan_rows:
+        rules = [(Decimal(str(r["profit_above"])), Decimal(str(r["tax_rate_pct"]))) for r in rule_rows if r["plan_id"] == row["plan_id"]]
+        plans.append({
+            "plan_id": row["plan_id"],
+            "name": row["name"],
+            "max_per_year": None if row["max_per_year"] is None else Decimal(str(row["max_per_year"])),
+            "min_monthly": Decimal(str(row["min_monthly"])),
+            "min_lump_sum": None if row["min_lump_sum"] is None else Decimal(str(row["min_lump_sum"])),
+            "return_min_pct": Decimal(str(row["return_min_pct"])),
+            "return_max_pct": Decimal(str(row["return_max_pct"])),
+            "monthly_fee_pct": Decimal(str(row["monthly_fee_pct"])),
+            "tax_rules": rules,
+        })
+    return plans
+
+
+def save_quote(user_id, plan_id, recommended_plan_id, lump_sum, monthly, rows, db_file=None):
+    """Insert a quote and its result rows, and return the quote id."""
+    connection = get_connection(db_file)
+    try:
+        cursor = connection.execute(
+            "INSERT INTO quote (user_id, plan_id, recommended_plan_id, lump_sum, monthly_amount) VALUES (?, ?, ?, ?, ?)",
+            (user_id, plan_id, recommended_plan_id, float(lump_sum), float(monthly)),
+        )
+        quote_id = cursor.lastrowid
+        for row in rows:
+            connection.execute(
+                "INSERT INTO quote_result (quote_id, scenario, years, final_value, total_profit, total_fees, total_tax) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (quote_id, row["scenario"], row["years"], float(row["final_value"]), float(row["total_profit"]), float(row["total_fees"]), float(row["total_tax"])),
+            )
+        connection.commit()
+        return quote_id
+    finally:
+        connection.close()
+
+
+def mark_quote_saved(quote_id, user_id, db_file=None):
+    """Set is_saved for this user's quote. Return True if a row changed."""
+    connection = get_connection(db_file)
+    try:
+        cursor = connection.execute("UPDATE quote SET is_saved = 1 WHERE quote_id = ? AND user_id = ?", (quote_id, user_id))
+        connection.commit()
+        return cursor.rowcount == 1
+    finally:
+        connection.close()
