@@ -9,10 +9,14 @@
 <body>
   <nav>
     <a href="/">Home</a>
-    <a href="/login">Login</a>
     <a href="/converter">Converter</a>
     <a href="/quote-page">Quote</a>
     <a href="/history-page">History</a>
+    {% if session.get("user_id") %}
+    <a href="#" id="logout-link">Sign out</a>
+    {% else %}
+    <a href="/login">Sign in</a>
+    {% endif %}
   </nav>
   <main>
     {% block content %}{% endblock %}

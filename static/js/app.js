@@ -43,3 +43,12 @@ function clearCachedForm(name) {
     console.warn("Could not clear the cache", problem);
   }
 }
+
+const logoutLink = document.getElementById("logout-link");
+if (logoutLink) {
+  logoutLink.addEventListener("click", async (event) => {
+    event.preventDefault();
+    await postJson("/api/logout", {});
+    window.location.href = "/login";
+  });
+}

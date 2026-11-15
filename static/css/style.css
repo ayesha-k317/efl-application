@@ -14,3 +14,4 @@ table { border-collapse: collapse; width: 100%; background: #ffffff; margin-bott
 th, td { border: 1px solid #d1d5db; padding: 0.4rem 0.6rem; text-align: left; }
 th { background: var(--navy); color: #ffffff; }
 svg { background: #ffffff; max-width: 100%; border-radius: 8px; }
+form + h2 { margin-top: 2rem; }
