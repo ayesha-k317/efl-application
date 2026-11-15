@@ -8,13 +8,11 @@ from errors import RateUnavailableError
 
 BASE_DIR = Path(__file__).parent
 
-
 def get_connection(db_file=None):
     connection = sqlite3.connect(db_file or config.DB_FILE)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     return connection
-
 
 def init_db(db_file=None):
     script = (BASE_DIR / "schema.sql").read_text(encoding="utf-8")
@@ -23,7 +21,6 @@ def init_db(db_file=None):
     seed_reference_data(connection)
     connection.commit()
     connection.close()
-
 
 def seed_reference_data(connection):
     for code in config.CURRENCIES:
@@ -56,7 +53,6 @@ def seed_reference_data(connection):
         (config.DEMO_USER_ID,),
     )
 
-
 def get_rate_to_usd(currency_code, db_file=None):
     connection = get_connection(db_file)
     try:
@@ -70,7 +66,6 @@ def get_rate_to_usd(currency_code, db_file=None):
         raise RateUnavailableError("No exchange rate is available for " + str(currency_code) + ".")
     return Decimal(str(row["rate_to_usd"]))
 
-
 def list_currencies(db_file=None):
     connection = get_connection(db_file)
     try:
@@ -80,7 +75,6 @@ def list_currencies(db_file=None):
     finally:
         connection.close()
     return [{"code": r["currency_code"], "name": r["name"], "symbol": r["symbol"]} for r in rows]
-
 
 def save_transaction(user_id, transaction, db_file=None):
     connection = get_connection(db_file)
@@ -127,7 +121,6 @@ def get_plans(db_file=None):
         })
     return plans
 
-
 def save_quote(user_id, plan_id, recommended_plan_id, lump_sum, monthly, rows, db_file=None):
     """Insert a quote and its result rows, and return the quote id."""
     connection = get_connection(db_file)
@@ -146,7 +139,6 @@ def save_quote(user_id, plan_id, recommended_plan_id, lump_sum, monthly, rows, d
         return quote_id
     finally:
         connection.close()
-
 
 def mark_quote_saved(quote_id, user_id, db_file=None):
     """Set is_saved for this user's quote. Return True if a row changed."""
@@ -167,7 +159,6 @@ def log_error(source, message, db_file=None):
     finally:
         connection.close()
 
-
 def create_user(name, email, phone, password_hash, db_file=None):
     """Insert a user and return the new user id."""
     connection = get_connection(db_file)
@@ -178,7 +169,6 @@ def create_user(name, email, phone, password_hash, db_file=None):
     finally:
         connection.close()
 
-
 def get_user_by_email(email, db_file=None):
     """Return the user row as a dictionary, or None."""
     connection = get_connection(db_file)
@@ -188,7 +178,6 @@ def get_user_by_email(email, db_file=None):
         connection.close()
     return dict(row) if row else None
 
-
 def has_fresh_live_rate(db_file=None):
     """True if a live rate younger than RATE_MAX_AGE_MINUTES is stored."""
     connection = get_connection(db_file)
@@ -197,7 +186,6 @@ def has_fresh_live_rate(db_file=None):
     finally:
         connection.close()
     return row is not None
-
 
 def save_rates(rates, source, db_file=None):
     """Insert one exchange_rate row for each currency in the dictionary."""
@@ -209,7 +197,6 @@ def save_rates(rates, source, db_file=None):
     finally:
         connection.close()
 
-
 def latest_rate_time(db_file=None):
     """Return the newest fetched_at text, or None."""
     connection = get_connection(db_file)
@@ -218,7 +205,6 @@ def latest_rate_time(db_file=None):
     finally:
         connection.close()
     return row["latest"]
-
 
 def get_history(user_id, db_file=None):
     """Return the user's transactions and saved quotes."""
@@ -234,7 +220,6 @@ def get_history(user_id, db_file=None):
         connection.close()
     return {"transactions": [dict(t) for t in transactions], "quotes": quotes_out}
 
-
 def save_draft(user_id, form_data, db_file=None):
     """Insert a draft and return its id."""
     connection = get_connection(db_file)
@@ -244,7 +229,6 @@ def save_draft(user_id, form_data, db_file=None):
         return cursor.lastrowid
     finally:
         connection.close()
-
 
 def get_draft(draft_id, user_id, db_file=None):
     """Return the draft's form data, or None."""

@@ -9,11 +9,9 @@ from errors import InputError, RateUnavailableError
 
 bp = Blueprint("convert", __name__)
 
-
 @bp.route("/api/currencies", methods=["GET"])
 def currencies():
     return jsonify(database.list_currencies(current_app.config["DB_FILE"]))
-
 
 @bp.route("/api/convert", methods=["POST"])
 def convert():

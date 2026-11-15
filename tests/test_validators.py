@@ -33,11 +33,9 @@ def test_invalid_money_raises_input_error(text):
     with pytest.raises(InputError):
         validators.validate_money(text, "lump sum")
 
-
 def test_valid_money_allows_zero_and_two_places():
     assert validators.validate_money("0", "lump sum") == Decimal("0")
     assert validators.validate_money("250.50", "monthly amount") == Decimal("250.50")
-
 
 def test_plan_id_must_exist(db_file):
     import database
@@ -46,7 +44,6 @@ def test_plan_id_must_exist(db_file):
     for bad in ["9", "x", None]:
         with pytest.raises(InputError):
             validators.validate_plan_id(bad, plans)
-
 
 def test_quote_inputs_must_meet_plan_rules(db_file):
     import database

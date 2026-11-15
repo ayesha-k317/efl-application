@@ -7,7 +7,6 @@ HUNDRED = Decimal("100")
 TWELVE = Decimal("12")
 ZERO = Decimal("0")
 
-
 def tax_for_profit(profit, tax_rules):
     """Marginal tax: each rate applies only to the slice of profit above its threshold."""
     if profit <= 0:
@@ -20,7 +19,6 @@ def tax_for_profit(profit, tax_rules):
         if top > above:
             tax += (top - above) * rate / HUNDRED
     return tax
-
 
 def simulate(plan, lump_sum, monthly, months, annual_rate_pct):
     """Return (balance, total_fees) after the given number of months."""
@@ -35,7 +33,6 @@ def simulate(plan, lump_sum, monthly, months, annual_rate_pct):
         balance -= fee
         total_fees += fee
     return balance, total_fees
-
 
 def calculate_quote(plan, lump_sum, monthly, years, scenario):
     """Return final value, profit, fees and tax. Scenario is 'min' or 'max'."""
@@ -56,7 +53,6 @@ def calculate_quote(plan, lump_sum, monthly, years, scenario):
         "loss": profit < 0,
     }
 
-
 def check_eligibility(plan, lump_sum, monthly):
     """Return a list of reasons the plan is not available. Empty means eligible."""
     reasons = []
@@ -68,7 +64,6 @@ def check_eligibility(plan, lump_sum, monthly):
     if plan["max_per_year"] is not None and first_year > plan["max_per_year"]:
         reasons.append(f"{plan['name']}: the maximum investment per year is £{plan['max_per_year']:,.2f}; your first year would be £{first_year:,.2f}.")
     return reasons
-
 
 def build_quote(plans, lump_sum, monthly):
     """Return one entry per plan with eligibility and the 1, 5 and 10 year results."""
@@ -83,7 +78,6 @@ def build_quote(plans, lump_sum, monthly):
         entries.append({"plan_id": plan["plan_id"], "name": plan["name"], "eligible": not reasons, "reasons": reasons, "results": rows})
     return entries
 
-
 def recommend_plan(entries):
     """Highest after-tax value after 10 years in the maximum scenario, among eligible plans."""
     best = None
@@ -95,7 +89,6 @@ def recommend_plan(entries):
         if best_value is None or row["final_value"] > best_value:
             best, best_value = entry, row["final_value"]
     return best
-
 
 def serialise(entries):
     """Turn every Decimal into text with two decimal places."""

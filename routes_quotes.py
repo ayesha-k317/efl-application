@@ -39,7 +39,6 @@ def quote():
         "plans": quotes.serialise(entries),
     }), 200
 
-
 @bp.route("/api/quotes/<int:quote_id>/save", methods=["POST"])
 def save_quote_route(quote_id):
     db_file = current_app.config["DB_FILE"]
