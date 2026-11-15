@@ -62,3 +62,45 @@ def test_unknown_currency_is_rejected(client):
 def test_missing_body_is_rejected(client):
     response = client.post("/api/convert")
     assert response.status_code == 400
+
+
+def post_quote(client, lump, monthly, plan_id=2):
+    return client.post("/api/quote", json={"lump_sum": lump, "monthly": monthly, "plan_id": plan_id})
+
+
+def test_quote_route_returns_all_plans_and_recommendation(client):
+    response = post_quote(client, "1000", "200", 2)
+    data = response.get_json()
+    assert response.status_code == 200
+    assert len(data["plans"]) == 3
+    assert data["recommended_plan_id"] == 3
+    chosen = next(p for p in data["plans"] if p["plan_id"] == 2)
+    assert len(chosen["results"]) == 6
+    assert chosen["results"][0]["final_value"].count(".") == 1
+
+
+def test_quote_route_rejects_plan_rule_breaks(client):
+    response = post_quote(client, "100", "50", 2)
+    assert response.status_code == 400
+    assert "300.00" in response.get_json()["error"]
+
+
+def test_quote_route_rejects_bad_numbers(client):
+    assert post_quote(client, "abc", "50", 1).status_code == 400
+    assert post_quote(client, "0", "-5", 1).status_code == 400
+
+
+def test_quote_is_stored_with_six_results(client, db_file):
+    post_quote(client, "1000", "200", 3)
+    connection = database.get_connection(db_file)
+    quotes_count = connection.execute("SELECT COUNT(*) FROM quote").fetchone()[0]
+    results_count = connection.execute("SELECT COUNT(*) FROM quote_result").fetchone()[0]
+    connection.close()
+    assert (quotes_count, results_count) == (1, 6)
+
+
+def test_save_quote_marks_it_saved(client):
+    quote_id = post_quote(client, "1000", "200", 3).get_json()["quote_id"]
+    response = client.post("/api/quotes/" + str(quote_id) + "/save")
+    assert response.status_code == 200
+    assert client.post("/api/quotes/999/save").status_code == 404
